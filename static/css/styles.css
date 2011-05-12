@@ -1,0 +1,13 @@
+body {
+    margin: 50px 0;
+}
+
+#map-container {
+    width: 600px;
+    margin: 0px auto;
+}
+
+#map {
+    width: 600px;
+    height: 480px;
+}
