@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://earth.google.com/kml/2.0">
+  <Document>
+    <Style id="translucentPath">
+      <LineStyle>
+        <width>5.0</width>
+        <color>7d0000ff</color>
+      </LineStyle>
+    </Style>
+    <Folder>
+      {{ kml_data }}
+    </Folder>
+  </Document>
+</kml>

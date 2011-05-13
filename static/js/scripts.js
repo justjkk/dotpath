@@ -39,6 +39,22 @@ function CreateMap() {
     start_marker = null;
     finish_marker = null;
 
+    // Add Routing layers
+    routingLayer = new OpenLayers.Layer.Vector("KML", {
+        strategies: [new OpenLayers.Strategy.Fixed()],
+        protocol: new OpenLayers.Protocol.HTTP({
+            url: "route.kml",
+            params: {"start_location" : "80.212531280499,13.043915340177",
+            "finish_location": "80.273299407938,13.069834950294"},
+            format: new OpenLayers.Format.KML({
+                extractStyles: true,
+                extractAttributes: true,
+                maxDepth: 2
+            })
+        })
+    });
+    map.addLayer(routingLayer);
+
     // Create Click class to handle clicking on Map
     OpenLayers.Control.Click = OpenLayers.Class(
         OpenLayers.Control,
@@ -94,9 +110,9 @@ function CreateMap() {
                         new OpenLayers.Projection("EPSG:4326")
                     );
                     
-                    // Make AJAX request to fetch routing data
-                    $.ajax('/routing.js?start_location=' + start_lonlat +
-                        '&finish_location=' + finish_lonlat);
+                    routingLayer.protocol.params.start_location = start_lonlat.lon + "," + start_lonlat.lat;
+                    routingLayer.protocol.params.finish_location = finish_lonlat.lon + "," + finish_lonlat.lat;
+                    routingLayer.refresh();
                 }
                 else // Third click resets the map
                 {
