@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from flask import Flask, render_template, g, request, abort, make_response
+from flask import Flask, render_template, g, request, abort, make_response, redirect, url_for
 
 from dbhelper import connect_to_DB, find_nearest_node
 
@@ -20,6 +20,10 @@ def after_request(response):
 
 @app.route("/route.kml")
 def route_kml():
+    return redirect(url_for('dijkstra_route_kml', start_location = request.args["start_location"], finish_location = request.args["finish_location"]))
+
+@app.route("/dijkstra_route.kml")
+def dijkstra_route_kml():
     if not "start_location" in request.args or not "finish_location" in request.args:
         return render_template('route.kml', kml_data=None)
     start_location = request.args["start_location"]
