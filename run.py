@@ -24,8 +24,8 @@ def route_kml():
     return redirect(url_for('mtc_route_kml', start_location = request.args["start_location"], finish_location = request.args["finish_location"]))
 
 
-@app.route("/dijkstra_route.kml")
-def dijkstra_route_kml():
+@app.route("/osm-dijkstra_route.kml")
+def osm_dijkstra_route_kml():
     if not "start_location" in request.args or not "finish_location" in request.args:
         return render_template('route.kml', kml_data=None)
     start_location = request.args["start_location"]
@@ -47,8 +47,8 @@ def dijkstra_route_kml():
     kml_data = reduce(lambda x,y: x + y, ["<Placemark><styleUrl>#translucentPath</styleUrl>" + x[0] + "</Placemark>" for x in kml_rows])
     return render_template('route.kml', kml_data=kml_data)
 
-@app.route("/mtc_route.kml")
-def mtc_route_kml():
+@app.route("/mtc-dijkstra_route.kml")
+def mtc_dijkstra_route_kml():
     if not "start_location" in request.args or not "finish_location" in request.args:
         return render_template('route.kml', kml_data=None)
     start_location = request.args["start_location"]
@@ -86,6 +86,14 @@ def routing_js():
 @app.route("/")
 def index():
     return render_template('index.html')
+
+@app.route("/osm-dijkstra")
+def osm_dijkstra():
+    return render_template('osm-dijkstra.html')
+
+@app.route("/mtc-dijkstra")
+def mtc_dijkstra():
+    return render_template('mtc-dijkstra.html')
 
 if __name__ == "__main__":
     app.run()

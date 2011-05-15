@@ -1,0 +1,9 @@
+#map-container {
+    width: 800px;
+    margin: 0px auto;
+}
+
+#map {
+    width: 800px;
+    height: 600px;
+}

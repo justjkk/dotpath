@@ -1,24 +1,20 @@
-<!doctype html>
-<html>
-    <head>
-        <title>dotpath - OpenLayers Routing Tester</title>
-        <link rel="stylesheet" href="/static/css/styles.css">
-        <script src="/static/js/jquery.js"></script>
-        <script src="/static/js/OpenLayers.js"></script>
-        <script src="/static/js/scripts.js"></script>
-        <script>
-            $(document).ready(function () {
-                var map;
-                var start_marker;
-                var finish_marker;
-                var routingLayer;
-                CreateMap();
-            });
-        </script>
-    </head>
-    <body>
-        <div id="map-container">
-            <div id="map"></div>
-        </div>
-    </body>
-</html>
+{% extends "base.html" %}
+{% block title %}Index | {{ super() }}{% endblock %}
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href="/static/css/index.css">
+<script src="/static/js/index.js"></script>
+{% endblock %}
+{% block body %}
+<section>
+<header>Click on any of the items</header>
+<article id="osm-dijkstra">
+<header>OSM - dijkstra</header>
+<img src="/static/img/thumbs/osm-dijkstra.png" alt="OSM - Dijkstra" width="200" height="150" />
+</article>
+<article id="mtc-dijkstra">
+<header>MTC - dijkstra</header>
+<img src="/static/img/thumbs/mtc-dijkstra.png" alt="MTC - Dijkstra" width="200" height="150" />
+</article>
+</section>
+{% endblock %}

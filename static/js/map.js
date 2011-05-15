@@ -1,7 +1,7 @@
-function CreateMap() {
+function CreateMap(routing_url) {
 
     // Create Openlayers Map object
-    map = new OpenLayers.Map({
+    var map = new OpenLayers.Map({
         div: "map",
         controls:[
             new OpenLayers.Control.Navigation(),
@@ -36,14 +36,14 @@ function CreateMap() {
     map.addLayer(pointsLayer);
 
     // Initialize markers
-    start_marker = null;
-    finish_marker = null;
+    var start_marker = null;
+    var finish_marker = null;
 
     // Add Routing layers
-    routingLayer = new OpenLayers.Layer.Vector("KML", {
+    var routingLayer = new OpenLayers.Layer.Vector("KML", {
         strategies: [new OpenLayers.Strategy.Fixed()],
         protocol: new OpenLayers.Protocol.HTTP({
-            url: "route.kml",
+            url: routing_url,
             params: {"start_location" : "80.212531280499,13.043915340177",
             "finish_location": "80.273299407938,13.069834950294"},
             format: new OpenLayers.Format.KML({

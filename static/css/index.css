@@ -1,0 +1,28 @@
+section {
+	width: 960px;
+	margin: 0 auto;
+}
+
+section header {
+	font-size: xx-large;
+	font-weight: bold;
+	text-align: center;
+}
+
+article {
+	float: left;
+	width: 200px;
+	height: 170px;
+	margin: 0 15px;
+	padding: 5px;
+}
+
+article:hover {
+	cursor: pointer;
+}
+
+article header {
+	font-size: x-large;
+	font-weight: bold;
+	text-align: center;
+}

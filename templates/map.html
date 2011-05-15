@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href="/static/css/map.css">
+<script src="/static/js/OpenLayers.js"></script>
+<script src="/static/js/map.js"></script>
+<script>
+$(document).ready(function () {
+	CreateMap({% block routing_url %}{% endblock %});
+});
+</script>
+{% endblock %}
+
+{% block body %}
+<div id="map-container">
+<div id="map">
+</div>
+</div>
+{% endblock %}
