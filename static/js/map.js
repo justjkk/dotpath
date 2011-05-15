@@ -32,7 +32,7 @@ function CreateMap(routing_url) {
     );
 
     // Create pointsLayer which contains start and stop markers
-    var pointsLayer = new OpenLayers.Layer.Markers("Points");
+    var pointsLayer = new OpenLayers.Layer.Markers("Flags");
     map.addLayer(pointsLayer);
 
     // Initialize markers
@@ -42,6 +42,34 @@ function CreateMap(routing_url) {
     // Add Routing layers
     var routingLayer = new OpenLayers.Layer.Vector("KML", {
         strategies: [new OpenLayers.Strategy.Fixed()],
+        styleMap: new OpenLayers.StyleMap({
+            'default':{
+                strokeColor: "#000000",
+                strokeOpacity: 0.3,
+                strokeWidth: 6,
+                fillOpacity: 0.5,
+                fillColor: "#aa7700",
+                pointRadius: 4,
+                pointerEvents: "visiblePainted",
+            },
+            'select':{
+                strokeOpacity: 0.5,
+                strokeWidth: 8,
+                strokeColor: "#FF0000",
+                fillColor: "#000000",
+                fillOpacity: 0.7,
+                pointRadius: 6,
+                pointerEvents: "visiblePainted",
+                label : "${label}",
+                fontColor: "#000000",
+                fontSize: "14pt",
+                fontFamily: "Ubuntu, Arial, Tahoma, Sans-serif",
+                fontWeight: "bold",
+                labelAlign: "cm",
+                labelXOffset: 0,
+                labelYOffset: 0
+            }
+        }),
         protocol: new OpenLayers.Protocol.HTTP({
             url: routing_url,
             params: {"start_location" : "80.212531280499,13.043915340177",
@@ -54,6 +82,10 @@ function CreateMap(routing_url) {
         })
     });
     map.addLayer(routingLayer);
+    // Create a select feature control and add it to the map.
+    var select = new OpenLayers.Control.SelectFeature(routingLayer, {hover: true});
+    map.addControl(select);
+    select.activate();
 
     // Create Click class to handle clicking on Map
     OpenLayers.Control.Click = OpenLayers.Class(

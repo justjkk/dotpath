@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from flask import Flask, render_template, g, request, abort, make_response, redirect, url_for
+from xml.sax.saxutils import escape
 
 from dbhelper import connect_to_DB, find_nearest_node
 from mtchelper import find_nearest_mtc_stage
@@ -44,7 +45,7 @@ def osm_dijkstra_route_kml():
     kml_rows = g.cur.fetchall()
     if len(kml_rows) == 0:
         return render_template('route.kml', kml_data=None)
-    kml_data = reduce(lambda x,y: x + y, ["<Placemark><styleUrl>#translucentPath</styleUrl>" + x[0] + "</Placemark>" for x in kml_rows])
+    kml_data = reduce(lambda x,y: x + y, ["<Placemark>\n<label> </label>" + x[0] + "\n</Placemark>\n" for x in kml_rows])
     return render_template('route.kml', kml_data=kml_data)
 
 @app.route("/mtc-dijkstra_route.kml")
@@ -56,24 +57,27 @@ def mtc_dijkstra_route_kml():
     start_stage = find_nearest_mtc_stage(g.cur, start_location);
     finish_stage = find_nearest_mtc_stage(g.cur, finish_location);
     g.cur.execute(" \
-        SELECT ST_AsKML(linemerge(the_geom)) FROM shortest_path(' \
+        SELECT r.name, ST_Length(rs.the_geom) as cost, ST_AsKML(linemerge(rs.the_geom)), vertex_id FROM shortest_path(' \
             SELECT id::integer, \
                 source::integer, \
                 target::integer, \
                 ST_Length(the_geom)::double precision as cost \
                 FROM mtc_routesegments where the_geom is not null', \
             %d, %d, false, false) sp \
-            join mtc_routesegments mrs on sp.edge_id = mrs.id;" % (start_stage, finish_stage))
+            join mtc_routesegments rs on sp.edge_id = rs.id \
+            join mtc_routes r on rs.route = r.id;" % (start_stage, finish_stage))
     kml_rows = g.cur.fetchall()
     if len(kml_rows) == 0:
         return render_template('route.kml', kml_data=None)
+    stop_ids = [str(x[3]) for x in kml_rows] + [str(finish_stage)]
     g.cur.execute(" \
-        SELECT ST_ASKML(the_geom) FROM mtc_stages where id in (%s);" % ",".join([str(start_stage), str(finish_stage)]))
+        SELECT name, ST_ASKML(the_geom) FROM mtc_stages where id in (%s);" % ",".join(stop_ids))
     kml_rows2 = g.cur.fetchall()
-    kml_data = reduce(lambda x,y: x + y, ["<Placemark><styleUrl>#translucentPath</styleUrl>" + x[0] + "</Placemark>" for x in kml_rows])
-    kml_data2 = reduce(lambda x,y: x + y, ["<Placemark><styleUrl>#Stage</styleUrl>" + x[0] + "</Placemark>" for x in kml_rows2])
+    kml_data = reduce(lambda x,y: x + y, ["<Placemark>\n<label>" + escape(x[0]) + "</label>\n" + x[2] + "\n</Placemark>\n" for x in kml_rows])
+    kml_data2 = reduce(lambda x,y: x + y, ["<Placemark>\n<label>" + escape(x[0]) + "</label>\n" + x[1] + "\n</Placemark>\n" for x in kml_rows2])
 
     return render_template('route.kml', kml_data=kml_data + kml_data2)
+
 @app.route("/routing.js", methods=["GET"])
 def routing_js():
     if not "start_location" in request.args or not "finish_location" in request.args:
@@ -82,7 +86,7 @@ def routing_js():
     response = make_response(render_template('routing.js', data=data), 200)
     response.headers["Content-Type"] = "text/javascript; charset=utf-8"
     return response
-    
+
 @app.route("/")
 def index():
     return render_template('index.html')
