@@ -5,6 +5,9 @@ function blocklink() {
 	$("#mtc-dijkstra").click(function () {
 		window.location.href = "/mtc-dijkstra";
 	});
+	$("#mtc-nonsc").click(function () {
+		window.location.href = "/mtc-nonsc";
+	});
 }
 
 $(document).ready(function () {
