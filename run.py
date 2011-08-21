@@ -6,6 +6,8 @@ from xml.sax.saxutils import escape
 from dbhelper import connect_to_DB, find_nearest_node
 from mtchelper import find_nearest_mtc_stage
 from mtc_nonsc_helper import find_nearest_mtc_nonsc_stop
+from chennai_rail_helper import find_nearest_chennai_rail_stop
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 app.config.from_object('configuration')
@@ -89,7 +91,7 @@ def mtc_nonsc_route_kml():
     finish_stage = find_nearest_mtc_nonsc_stop(g.cur, finish_location)
     g.cur.execute(" \
         SELECT changeover_id FROM non_scheduled_route( \
-            '%s', '%s', '%s')" % ('MTC_NonSc', start_stage, finish_stage))
+            '%s', '%s', '%s')" % ('mtc_nonsc', start_stage, finish_stage))
     changeovers = [str(x[0]) for x in g.cur.fetchall()]
     if len(changeovers) == 0:
         return render_template('route.kml', kml_data=None)
@@ -139,6 +141,58 @@ def mtc_nonsc_route_kml():
 
     return render_template('route.kml', kml_data=kml_data + kml_data2)
 
+def Placemark(label, kml_text):
+  return "<Placemark>\n<label>" + escape(label) + "</label>\n" \
+      + kml_text + "\n</Placemark>"
+
+@app.route("/chennai-rail_route.kml")
+def chennai_rail_route_kml():
+    if not "start_location" in request.args or not "finish_location" in request.args:
+        return render_template('route.kml', kml_data=None)
+    start_location = request.args["start_location"]
+    finish_location = request.args["finish_location"]
+    start_stop = find_nearest_chennai_rail_stop(g.cur, start_location)
+    finish_stop = find_nearest_chennai_rail_stop(g.cur, finish_location)
+    query_time = datetime.now()
+    g.cur.execute(" \
+        SELECT stop_id, trip_id, waiting_time, travel_time, ST_AsKML(the_point) \
+        FROM gtfs_route_with_schema( 'chennai_rail', '%s', '%s', '%s')" % (
+            start_stop,
+            finish_stop,
+            query_time.isoformat()))
+    route_data = g.cur.fetchall()
+    if len(route_data) == 0:
+        return render_template('route.kml', kml_data=None)
+    kml_rows = []
+    kml_data2 = ''
+    stop_time = query_time
+    for row_data in route_data[:-1]:
+        g.cur.execute("""
+            SELECT
+                ST_ASKML(ST_Makeline(iq.the_geom))
+            FROM (SELECT st.trip_id, s.the_geom
+              FROM
+                chennai_rail.Stops s,
+                chennai_rail.Stop_Times st
+              WHERE s.stop_id = st.stop_id
+                AND st.trip_id = '%s'
+              ORDER BY st.stop_sequence) AS iq
+            GROUP BY iq.trip_id
+            """ % (row_data[1])
+        )
+        trip_geom = g.cur.fetchone()[0]
+        kml_rows.append(("%s(waiting=%s, travel=%s)" % (row_data[1], row_data[2], row_data[3]), trip_geom))
+        stop_label = "%s %s" %(row_data[0], stop_time.strftime('%d-%b-%Y \
+          %H:%M:%S'))
+        stop_time += row_data[2] + row_data[3]
+        kml_data2 += Placemark(stop_label, row_data[4])
+    stop_label = "%s %s" %(route_data[-1][0], stop_time.strftime('%d-%b-%Y \
+          %H:%M:%S'))
+    kml_data2 += Placemark(stop_label, route_data[-1][4])
+    kml_data = '\n'.join([Placemark(x[0], x[1]) for x in kml_rows])
+
+    return render_template('route.kml', kml_data=kml_data + kml_data2)
+
 @app.route("/routing.js", methods=["GET"])
 def routing_js():
     if not "start_location" in request.args or not "finish_location" in request.args:
@@ -163,6 +217,10 @@ def mtc_dijkstra():
 @app.route("/mtc-nonsc")
 def mtc_nonsc():
     return render_template('mtc-nonsc.html')
+
+@app.route("/chennai-rail")
+def chennai_rail():
+    return render_template('chennai-rail.html')
 
 if __name__ == "__main__":
     app.run()

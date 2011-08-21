@@ -8,6 +8,9 @@ function blocklink() {
 	$("#mtc-nonsc").click(function () {
 		window.location.href = "/mtc-nonsc";
 	});
+    $("#chennai-rail").click(function () {
+		window.location.href = "/chennai-rail";
+    });
 }
 
 $(document).ready(function () {

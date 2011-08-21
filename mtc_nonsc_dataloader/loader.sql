@@ -2,12 +2,15 @@ drop schema MTC_NonSc cascade;
 
 create schema MTC_NonSc;
 
+CREATE DOMAIN MTC_NonSc.wgs84_lat AS double precision CHECK(VALUE >= -90 AND VALUE <= 90);
+CREATE DOMAIN MTC_NonSc.wgs84_lon AS double precision CHECK(VALUE >= -180 AND VALUE <= 180);
+
 create table MTC_NonSc.Stops
 (
-	stop_id     text primary key,
-	stop_name   text,
-	stop_lat    wgs84_lat not null,
-	stop_lon    wgs84_lon not null
+    stop_id     text primary key,
+    stop_name   text,
+    stop_lat    MTC_NonSc.wgs84_lat not null,
+    stop_lon    MTC_NonSc.wgs84_lon not null
 );
 
 create table MTC_NonSc.Trips
@@ -18,18 +21,18 @@ create table MTC_NonSc.Trips
 
 create table MTC_NonSc.Stop_Times
 (
-	trip_id         text not null references MTC_NonSc.Trips,
-	stop_id         text not null references MTC_NonSc.Stops,
-	arrival_time    gtfstime not null,
-    departure_time  gtfstime not null,
+    trip_id         text not null references MTC_NonSc.Trips,
+    stop_id         text not null references MTC_NonSc.Stops,
+    arrival_time    interval not null,
+    departure_time  interval not null,
     stop_sequence   integer not null
 );
 
 create table MTC_NonSc.Frequencies
 (
     trip_id         text not null,
-    start_time      gtfstime not null,
-    end_time        gtfstime not null,
+    start_time      interval not null,
+    end_time        interval not null,
     headway_secs    integer not null
 );
 
@@ -57,7 +60,7 @@ delete from MTC_Nonsc.Frequencies where trip_id not in (select trip_id from MTC_
 
 -- Adding Stop_Times from StopTimes
 insert into MTC_NonSc.Stop_Times(trip_id, stop_id, arrival_time, departure_time, stop_sequence)
-select trip_id, stop_id, secs_to_gtfstime(stop_time), secs_to_gtfstime(stop_time), sequence from StopTimes;
+select trip_id, stop_id, stop_time * '1 second'::INTERVAL, stop_time * '1 second'::INTERVAL, sequence from StopTimes;
 
 -- Adding GIS column to Stops
 select AddGeometryColumn('mtc_nonsc', 'stops', 'the_geom', 4326, 'POINT', 2);
